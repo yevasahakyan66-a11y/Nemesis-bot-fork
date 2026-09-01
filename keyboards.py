@@ -92,9 +92,27 @@ def protection_menu(settings: dict):
     links_action = {"delete": "🗑 Удалять", "warn": "⚠️ Предупреждать", "mute": "🔇 Мутить", "warn_mute": "⚠️+🔇", "ban": "⛔ Бан"}.get(
         filter_links.get("action", "delete"), "🗑 Удалять"
     )
+    link_scope_label = {
+        "bots_only": "🤖 Боты",
+        "people_only": "🧍 Люди",
+        "all": "👥 Все",
+    }.get(filter_links.get("scope", "all"), "👥 Все")
     b.row(
         InlineKeyboardButton(text=f"🔗 Ссылки {links_status}", callback_data="fl:t"),
         InlineKeyboardButton(text=links_action, callback_data="fl:action")
+    )
+    b.row(
+        InlineKeyboardButton(text=f"🔗 От кого: {link_scope_label}", callback_data="fl:scope")
+    )
+
+    invite_scope_label = {
+        "bots_only": "🤖 Боты",
+        "people_only": "🧍 Люди",
+        "all": "👥 Все",
+    }.get(settings.get("invite_scope", "all"), "👥 Все")
+    b.row(
+        InlineKeyboardButton(text="🚫 Инвайт-ссылки", callback_data="s:invite"),
+        InlineKeyboardButton(text=f"От кого: {invite_scope_label}", callback_data="fl:invite_scope")
     )
 
     mute = settings.get("filter_mute", {})
@@ -345,6 +363,32 @@ def link_action_menu():
     b.row(
         InlineKeyboardButton(text="⛔ Банить", callback_data="fl:a:ban"),
         InlineKeyboardButton(text="🔙 Назад", callback_data="menu:protection")
+    )
+    return b.as_markup()
+
+
+def link_scope_menu():
+    b = InlineKeyboardBuilder()
+    b.row(
+        InlineKeyboardButton(text="🤖 Только боты", callback_data="fl:s:bots_only"),
+        InlineKeyboardButton(text="👥 Боты и люди", callback_data="fl:s:all"),
+    )
+    b.row(
+        InlineKeyboardButton(text="🧍 Только люди", callback_data="fl:s:people_only"),
+        InlineKeyboardButton(text="🔙 Назад", callback_data="menu:protection"),
+    )
+    return b.as_markup()
+
+
+def invite_scope_menu():
+    b = InlineKeyboardBuilder()
+    b.row(
+        InlineKeyboardButton(text="🤖 Только боты", callback_data="fl:is:bots_only"),
+        InlineKeyboardButton(text="👥 Боты и люди", callback_data="fl:is:all"),
+    )
+    b.row(
+        InlineKeyboardButton(text="🧍 Только люди", callback_data="fl:is:people_only"),
+        InlineKeyboardButton(text="🔙 Назад", callback_data="menu:protection"),
     )
     return b.as_markup()
 

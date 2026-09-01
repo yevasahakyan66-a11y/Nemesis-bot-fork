@@ -50,19 +50,33 @@ def has_url(text: str) -> bool:
 def has_invite_link(text: str) -> bool:
     return bool(INVITE_PATTERN.search(text))
 
+def is_user_profile_link(url: str) -> bool:
+    """Возвращает True, если ссылка ведёт на имя/профиль пользователя
+    (внутренняя ссылка Telegram) и не является внешней ссылкой."""
+    if not url:
+        return False
+    lower = url.strip().lower()
+    if lower.startswith("tg://"):
+        return True
+    return False
+
+
 def extract_all_urls(message: Message) -> list[str]:
     urls: set[str] = set()
     text = message.text or message.caption or ""
 
     for match in URL_PATTERN.finditer(text):
-        urls.add(match.group())
+        if not is_user_profile_link(match.group()):
+            urls.add(match.group())
 
     for entity in (message.entities or []):
-        if entity.type == MessageEntityType.TEXT_LINK and entity.url:
+        if entity.type == MessageEntityType.TEXT_LINK and entity.url \
+                and not is_user_profile_link(entity.url):
             urls.add(entity.url)
 
     for entity in (message.caption_entities or []):
-        if entity.type == MessageEntityType.TEXT_LINK and entity.url:
+        if entity.type == MessageEntityType.TEXT_LINK and entity.url \
+                and not is_user_profile_link(entity.url):
             urls.add(entity.url)
 
     return list(urls)

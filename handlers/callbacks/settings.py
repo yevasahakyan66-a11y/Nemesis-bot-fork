@@ -6,8 +6,8 @@ from db import db
 from utils import apply_aggression_level
 from keyboards import (
     protection_menu, settings_menu, threshold_menu,
-    captcha_type_menu, link_action_menu, mute_action_menu,
-    warn_count_menu, greeting_menu, farewell_menu,
+    captcha_type_menu, link_action_menu, link_scope_menu, invite_scope_menu,
+    mute_action_menu, warn_count_menu, greeting_menu, farewell_menu,
     stats_menu, bayes_threshold_menu, aggression_menu,
     back_to_main,
 )
@@ -141,6 +141,46 @@ async def filter_links_callback(callback: CallbackQuery):
         await db.save_settings(chat_id, settings)
         labels = {"delete": "Удаление", "warn": "Предупреждение", "mute": "Мут", "warn_mute": "Warn+Мут", "ban": "Бан"}
         await callback.answer(f"Действие: {labels.get(act, act)}")
+    elif action == "scope":
+        await safe_edit(callback,
+            "🔗 К кому применяется блокировка внешних ссылок:",
+            reply_markup=link_scope_menu()
+        )
+        await callback.answer()
+        return
+    elif action == "s":
+        try:
+            scope = parts[2]
+        except (IndexError, ValueError):
+            await callback.answer("❌ Некорректное значение", show_alert=True)
+            return
+        if scope not in ("bots_only", "all", "people_only"):
+            await callback.answer("❌ Недопустимое значение", show_alert=True)
+            return
+        settings["filter_links"]["scope"] = scope
+        await db.save_settings(chat_id, settings)
+        labels = {"bots_only": "только боты", "all": "боты и люди", "people_only": "только люди"}
+        await callback.answer(f"Внешние ссылки: {labels[scope]}")
+    elif action == "invite_scope":
+        await safe_edit(callback,
+            "🚫 К кому применяется блокировка инвайт-ссылок:",
+            reply_markup=invite_scope_menu()
+        )
+        await callback.answer()
+        return
+    elif action == "is":
+        try:
+            scope = parts[2]
+        except (IndexError, ValueError):
+            await callback.answer("❌ Некорректное значение", show_alert=True)
+            return
+        if scope not in ("bots_only", "all", "people_only"):
+            await callback.answer("❌ Недопустимое значение", show_alert=True)
+            return
+        settings["invite_scope"] = scope
+        await db.save_settings(chat_id, settings)
+        labels = {"bots_only": "только боты", "all": "боты и люди", "people_only": "только люди"}
+        await callback.answer(f"Инвайт-ссылки: {labels[scope]}")
 
     settings["_vt_premium"] = await db.is_premium_group(chat_id)
     await safe_edit(callback, 

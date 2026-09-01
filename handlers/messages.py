@@ -75,6 +75,22 @@ async def is_blacklisted(chat_id: int, user_id: int, settings: dict) -> bool:
     return user_id in blacklist
 
 
+def _link_scope_applies(scope: str, is_bot: bool) -> bool:
+    """Проверяет, применяется ли фильтр ссылок к отправителю.
+
+    scope:
+      - "bots_only"   — только от ботов;
+      - "people_only" — только от людей;
+      - "all"         — от ботов и людей (по умолчанию).
+    """
+    scope = scope or "all"
+    if scope == "bots_only":
+        return is_bot
+    if scope == "people_only":
+        return not is_bot
+    return True
+
+
 async def apply_mute(chat_id: int, user_id: int, duration_minutes: int, reason: str,
                      moderator_id: int = 0) -> tuple[bool, bool]:
     """Применяет мут.
@@ -933,13 +949,14 @@ async def _moderate_pipeline(message: Message, chat_id: int, user_id: int, text:
         await handle_link_violation("Реклама")
         return
 
-    if settings.get("invite_block", True):
+    if settings.get("invite_block", True) and _link_scope_applies(settings.get("invite_scope", "all"), message.from_user.is_bot):
         for u in all_urls:
             if has_invite_link(u) or has_invite_wide(u):
                 await handle_link_violation("Инвайт-ссылка")
                 return
 
-    if settings.get("filter_links", {}).get("enabled", True) and all_urls:
+    link_scope = settings.get("filter_links", {}).get("scope", "all")
+    if settings.get("filter_links", {}).get("enabled", True) and all_urls and _link_scope_applies(link_scope, message.from_user.is_bot):
         await handle_link_violation("Внешняя ссылка")
         return
 
