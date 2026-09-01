@@ -87,24 +87,6 @@ def protection_menu(settings: dict):
         InlineKeyboardButton(text=captcha_type_label, callback_data="c:type")
     )
 
-    filter_links = settings.get("filter_links", {})
-    links_status = "✅ Вкл" if filter_links.get("enabled") else "❌ Выкл"
-    links_action = {"delete": "🗑 Удалять", "warn": "⚠️ Предупреждать", "mute": "🔇 Мутить", "warn_mute": "⚠️+🔇", "ban": "⛔ Бан"}.get(
-        filter_links.get("action", "delete"), "🗑 Удалять"
-    )
-    link_scope_label = {
-        "bots_only": "🤖 Боты",
-        "people_only": "🧍 Люди",
-        "all": "👥 Все",
-    }.get(filter_links.get("scope", "all"), "👥 Все")
-    b.row(
-        InlineKeyboardButton(text=f"🔗 Ссылки {links_status}", callback_data="fl:t"),
-        InlineKeyboardButton(text=links_action, callback_data="fl:action")
-    )
-    b.row(
-        InlineKeyboardButton(text=f"🔗 От кого: {link_scope_label}", callback_data="fl:scope")
-    )
-
     invite_scope_label = {
         "bots_only": "🤖 Боты",
         "people_only": "🧍 Люди",
@@ -195,6 +177,33 @@ async def settings_menu(settings: dict, chat_id: int = 0):
     b.row(
         InlineKeyboardButton(text=f"🖼 Без аватарки {'✅' if no_avatar else '❌'}", callback_data="s:no_avatar"),
         InlineKeyboardButton(text="🚫 Инвайт-ссылки", callback_data="s:invite")
+    )
+
+    filter_links = settings.get("filter_links", {})
+    links_status = "✅ Вкл" if filter_links.get("enabled") else "❌ Выкл"
+    links_action = {"delete": "🗑 Удалять", "warn": "⚠️ Предупреждать", "mute": "🔇 Мутить", "warn_mute": "⚠️+🔇", "ban": "⛔ Бан"}.get(
+        filter_links.get("action", "delete"), "🗑 Удалять"
+    )
+    link_scope_label = {
+        "bots_only": "🤖 Боты",
+        "people_only": "🧍 Люди",
+        "all": "👥 Все",
+    }.get(filter_links.get("scope", "all"), "👥 Все")
+    b.row(
+        InlineKeyboardButton(text=f"🔗 Внешние ссылки {links_status}", callback_data="fl:t"),
+        InlineKeyboardButton(text=links_action, callback_data="fl:action")
+    )
+    b.row(
+        InlineKeyboardButton(text=f"🔗 Внешние от кого: {link_scope_label}", callback_data="fl:scope")
+    )
+
+    invite_scope_label = {
+        "bots_only": "🤖 Боты",
+        "people_only": "🧍 Люди",
+        "all": "👥 Все",
+    }.get(settings.get("invite_scope", "all"), "👥 Все")
+    b.row(
+        InlineKeyboardButton(text=f"🚫 Инвайт от кого: {invite_scope_label}", callback_data="fl:invite_scope")
     )
 
     enable_logging = settings.get("logging_enabled", True)
@@ -362,7 +371,7 @@ def link_action_menu():
     )
     b.row(
         InlineKeyboardButton(text="⛔ Банить", callback_data="fl:a:ban"),
-        InlineKeyboardButton(text="🔙 Назад", callback_data="menu:protection")
+        InlineKeyboardButton(text="🔙 Назад", callback_data="menu:settings")
     )
     return b.as_markup()
 
@@ -375,7 +384,7 @@ def link_scope_menu():
     )
     b.row(
         InlineKeyboardButton(text="🧍 Только люди", callback_data="fl:s:people_only"),
-        InlineKeyboardButton(text="🔙 Назад", callback_data="menu:protection"),
+        InlineKeyboardButton(text="🔙 Назад", callback_data="menu:settings"),
     )
     return b.as_markup()
 
@@ -388,7 +397,7 @@ def invite_scope_menu():
     )
     b.row(
         InlineKeyboardButton(text="🧍 Только люди", callback_data="fl:is:people_only"),
-        InlineKeyboardButton(text="🔙 Назад", callback_data="menu:protection"),
+        InlineKeyboardButton(text="🔙 Назад", callback_data="menu:settings"),
     )
     return b.as_markup()
 

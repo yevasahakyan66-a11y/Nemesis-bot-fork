@@ -182,9 +182,8 @@ async def filter_links_callback(callback: CallbackQuery):
         labels = {"bots_only": "только боты", "all": "боты и люди", "people_only": "только люди"}
         await callback.answer(f"Инвайт-ссылки: {labels[scope]}")
 
-    settings["_vt_premium"] = await db.is_premium_group(chat_id)
     await safe_edit(callback, 
-        "🔐 Настройка защиты", reply_markup=protection_menu(settings)
+        "⚙️ Настройки", reply_markup=await settings_menu(settings, chat_id)
     )
 
 
